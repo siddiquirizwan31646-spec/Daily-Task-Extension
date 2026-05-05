@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Task Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --card: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #c8f06e;
+      --accent-dim: rgba(200,240,110,0.12);
+      --accent-border: rgba(200,240,110,0.25);
+      --text: #f5f2eb;
+      --muted: #6b6b6b;
+      --danger: #ff5a5a;
+      --done-bg: rgba(200,240,110,0.07);
+    }
+
+    body {
+      width: 400px;
+      min-height: 560px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 22px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(200,240,110,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--text);
+      letter-spacing: 0.3px;
+    }
+
+    .date-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .progress-bar-wrap {
+      margin-top: 14px;
+      background: var(--border);
+      border-radius: 4px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .progress-text {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 11px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── TODAY TAB ── */
+    .tasks-panel {
+      padding: 16px 16px 8px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-item:hover {
+      border-color: #333;
+      background: #1f1f1f;
+    }
+
+    .task-item.done {
+      background: var(--done-bg);
+      border-color: var(--accent-border);
+    }
+
+    .task-item.done .task-name {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      font-size: 12px;
+    }
+
+    .task-item.done .task-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0e0e0e;
+      font-weight: 700;
+    }
+
+    .task-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text);
+      transition: color 0.2s;
+    }
+
+    .task-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .task-item.done .task-time {
+      color: rgba(200,240,110,0.5);
+    }
+
+    /* ── SETUP TAB ── */
+    .setup-panel {
+      padding: 16px;
+    }
+
+    .setup-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.6;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.3px;
+    }
+
+    .task-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .task-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      width: 18px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .task-input {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .task-input:focus { border-color: var(--accent); }
+    .task-input::placeholder { color: var(--muted); }
+
+    .save-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #0e0e0e;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .save-btn:hover { opacity: 0.88; transform: scale(1.01); }
+    .save-btn:active { transform: scale(0.98); }
+
+    /* ── HISTORY TAB ── */
+    .history-panel {
+      padding: 12px 16px 16px;
+    }
+
+    .history-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+    .dl-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .dl-btn:hover { background: var(--accent-dim); }
+
+    .history-empty {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .history-day {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .history-day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .history-day-header.open {
+      border-bottom-color: var(--border);
+    }
+
+    .history-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .history-score {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .history-score.full { background: var(--accent-dim); color: var(--accent); }
+    .history-score.partial { background: rgba(255,180,40,0.12); color: #ffb828; }
+    .history-score.low { background: rgba(255,90,90,0.12); color: var(--danger); }
+
+    .history-tasks {
+      display: none;
+      padding: 8px 14px 12px;
+    }
+
+    .history-tasks.open { display: block; }
+
+    .history-task-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .history-task-row .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .history-task-row.done-row { color: var(--text); }
+    .history-task-row.done-row .dot { background: var(--accent); }
+    .history-task-row:not(.done-row) .dot { background: var(--danger); }
+
+    /* ── STATUS TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--accent);
+      color: #0e0e0e;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 20px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-icon">✓</div>
+        <div class="brand-name">Daily Tasks</div>
+      </div>
+      <div class="date-badge" id="todayDate">—</div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="progress-text" id="progressText">0 / 7 tasks done</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="today">Today</button>
+    <button class="tab" data-tab="setup">Setup</button>
+    <button class="tab" data-tab="history">History</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class="panel active" id="panel-today">
+    <div class="tasks-panel" id="taskList"></div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="panel" id="panel-setup">
+    <div class="setup-panel">
+      <div class="setup-hint">Define your 7 daily tasks below. These will reset automatically every midnight.</div>
+      <div id="taskInputs"></div>
+      <button class="save-btn" id="saveTasks">Save Tasks</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="panel-history">
+    <div class="history-panel">
+      <div class="history-controls">
+        <button class="dl-btn" id="downloadBtn">⬇ Download Excel</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
