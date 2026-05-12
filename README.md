@@ -27,6 +27,7 @@ A simple and efficient browser extension designed to help you manage your daily 
 3. Go to Extensions → Enable Developer Mode
 4. Click **Load unpacked**
 5. Select the project folder
+6. And Done Now Add Task
 
 ## 🚀 Usage
 
